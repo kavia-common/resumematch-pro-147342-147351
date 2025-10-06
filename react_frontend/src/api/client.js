@@ -1,21 +1,32 @@
-import axios from 'axios';
+import axios from "axios";
 
-const baseURL = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
+/**
+ * Axios API client configured with baseURL from environment.
+ * Falls back to http://localhost:3001 for local development.
+ */
+const baseURL =
+  process.env.REACT_APP_API_BASE && process.env.REACT_APP_API_BASE.trim().length > 0
+    ? process.env.REACT_APP_API_BASE
+    : "http://localhost:3001";
+
+const client = axios.create({
+  baseURL,
+});
 
 // PUBLIC_INTERFACE
-export const api = axios.create({
-  baseURL,
-  withCredentials: false,
-});
-
-// Attach Authorization header from localStorage token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('rm_token');
+export function setAuthToken(token) {
+  /** Set or clear the Authorization header for subsequent requests. */
   if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
+    client.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    delete client.defaults.headers.common.Authorization;
   }
-  return config;
-});
+}
 
-export default api;
+// PUBLIC_INTERFACE
+export function getClient() {
+  /** Get the configured axios instance. */
+  return client;
+}
+
+export default client;
